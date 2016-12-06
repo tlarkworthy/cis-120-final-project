@@ -5,6 +5,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 public class SquarePanel extends JPanel {
     private GameSquare gs;
@@ -12,12 +13,19 @@ public class SquarePanel extends JPanel {
     public final int HEIGHT = 50;
     private boolean mouseClick;
     
-    public SquarePanel(GameSquare gs) {
-        this.gs = gs;
+    public SquarePanel(GameSquare gameSq) {
+        gs = gameSq;
         mouseClick = false;
         addMouseListener(new MouseAdapter(){
             public void mouseClicked(MouseEvent e) {
-                mouseClick = true;
+                if(SwingUtilities.isLeftMouseButton(e)){
+                    mouseClick = true;
+                    if(gs.covered() && !gs.flagged()) {
+                        gs.uncover();
+                    }
+                } else if(SwingUtilities.isRightMouseButton(e)) {
+                    gs.flag();
+                }
                 repaint();
             }
         });
@@ -28,11 +36,11 @@ public class SquarePanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        gs.draw(g, WIDTH, HEIGHT);
         if(mouseClick) {
-            g.setColor(Color.RED);
+            g.setColor(Color.GRAY);
             g.fillRect(1, 1, WIDTH - 1, HEIGHT - 1);
         }
+        gs.draw(g, WIDTH, HEIGHT);
     }
     
     @Override

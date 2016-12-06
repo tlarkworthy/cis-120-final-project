@@ -40,6 +40,15 @@ public class Game implements Runnable
         frame.setVisible(true);
         
     }
+    
+    public static void gameOver() {
+        JFrame endFrame = new JFrame("You suck");
+        endFrame.setLocation(500,500);
+        endFrame.add(new JLabel("You Lose you suck"));
+        endFrame.pack();
+        endFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        endFrame.setVisible(true);
+    }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Game());
     }
