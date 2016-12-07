@@ -16,19 +16,7 @@ public class SquarePanel extends JPanel {
     public SquarePanel(GameSquare gameSq) {
         gs = gameSq;
         mouseClick = false;
-        addMouseListener(new MouseAdapter(){
-            public void mouseClicked(MouseEvent e) {
-                if(SwingUtilities.isLeftMouseButton(e)){
-                    mouseClick = true;
-                    if(gs.covered() && !gs.flagged()) {
-                        gs.uncover();
-                    }
-                } else if(SwingUtilities.isRightMouseButton(e)) {
-                    gs.flag();
-                }
-                repaint();
-            }
-        });
+        
     }
     
     
@@ -36,7 +24,7 @@ public class SquarePanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if(mouseClick) {
+        if(gs.covered()) {
             g.setColor(Color.GRAY);
             g.fillRect(1, 1, WIDTH - 1, HEIGHT - 1);
         }
