@@ -10,6 +10,7 @@ import java.util.Random;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -50,8 +51,12 @@ public class GamePanel extends JPanel {
 //        gameSquares[3][7].isBomb = true;
         Random rand = new Random();
         for (int i = 0; i < NUM_BOMBS; i++) {
-            int x = rand.nextInt(10);
-            int y = rand.nextInt(10);
+            int x = 0;
+            int y = 0;
+            do {
+                x = rand.nextInt(BOARD_WIDTH);
+                y = rand.nextInt(BOARD_HEIGHT);
+            } while (gameSquares[x][y].isBomb);
             gameSquares[x][y].isBomb = true;
         }
         for(int x = 0; x < squarePanels.length; x++) {
@@ -89,7 +94,7 @@ public class GamePanel extends JPanel {
                         repaint();
                     }
                 });
-                add(squarePanels[x][y]);
+                add(squarePanels[x][y], SwingConstants.CENTER);
             }
         }
         

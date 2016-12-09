@@ -5,6 +5,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 public class SquarePanel extends JPanel {
@@ -33,12 +34,12 @@ public class SquarePanel extends JPanel {
     
     @Override
     public int getWidth() {
-        return WIDTH + 1;
+        return WIDTH;
     }
     
     @Override
     public int getHeight() {
-        return HEIGHT + 1;
+        return HEIGHT;
     }
     
     @Override
