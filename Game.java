@@ -28,7 +28,6 @@ public class Game implements Runnable
     public void run() {
         frame = new JFrame("Minesweeper");
         frame.setLocation(300, 300);
-        
         final JLabel time = new JLabel("000");
         final JPanel controlPanel = new JPanel();
         final JLabel flagCount = new JLabel("000");
@@ -54,11 +53,12 @@ public class Game implements Runnable
                 final JFrame scoreFrame = new JFrame("High Scores");
                 //scoreFrame.setLayout(new FlowLayout());
                 scoreFrame.setLocation(400, 400);
-                scoreFrame.setSize(500, 500);
+                scoreFrame.setSize(600, 500);
                 List<String> scoreLines = new ArrayList<String>();
                 try {
                     BufferedReader in = new BufferedReader(new FileReader(new File("scores.txt")));
                     String next = in.readLine();
+
                     Map<String, Integer> scores = new TreeMap<String, Integer>();
                     while(next != null) {
                         String name = parseName(next);
@@ -81,11 +81,11 @@ public class Game implements Runnable
                 } catch (IOException e1) {
                     System.exit(1);
                 }
-                String label = "<html>";
+                String label = "<html><p style=\"align:center\">";
                 for (String s : scoreLines) {
                     label += s + "<br />";
                 }
-                label += "</html>";
+                label += "</p></html>";
                 JLabel lose = new JLabel(label);
                 lose.setFont(new Font(lose.getFont().getName(), lose.getFont().getStyle(), lose.getFont().getSize() * 2));
                 scoreFrame.add(lose, SwingConstants.CENTER);
@@ -117,9 +117,9 @@ public class Game implements Runnable
     
     public static void gameOver() {
         gp.stopTimer();
-        JFrame endFrame = new JFrame("You suck");
+        JFrame endFrame = new JFrame("Game Over");
         endFrame.setLocation(500,500);
-        JLabel lose = new JLabel("You lose you suck");
+        JLabel lose = new JLabel("<html><p style=\"text-align: center\">You hit a mine! Game over!</p></html>");
         lose.setFont(new Font(lose.getFont().getName(), lose.getFont().getStyle(), lose.getFont().getSize() * 4));
         endFrame.add(lose);
         endFrame.setSize(500, 500);
@@ -158,15 +158,13 @@ public class Game implements Runnable
     
     public static void win(int gameTime) {
         gp.stopTimer();
-        JFrame endFrame = new JFrame("You dont suck");
+        JFrame endFrame = new JFrame("You Win!");
         endFrame.setLayout(new BorderLayout());
         endFrame.setLocation(500, 500);
         
         
         
-        
-        
-        JLabel win = new JLabel("good job sharmouta: " + gameTime, SwingConstants.CENTER);
+        JLabel win = new JLabel("You Win! Time: " + gameTime, SwingConstants.CENTER);
         JTextField username = new JTextField("User", 1);
         JButton enterName = new JButton("Enter");
         enterName.setSize(50, 200);
@@ -175,6 +173,13 @@ public class Game implements Runnable
                 String name = username.getText();
                 FileWriter out;
                 try {
+                    char[] chars = name.toCharArray();
+                    for (int i = 0; i < chars.length; i++) {
+                        if (chars[i] == 58) {
+                            chars[i] = 0;
+                        }
+                    }
+                    name = String.copyValueOf(chars);
                     out = new FileWriter(new File("scores.txt"), true);
                     out.append(name + ": " + gameTime + "\n");
                     out.flush();

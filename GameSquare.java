@@ -5,11 +5,11 @@ import java.util.Arrays;
 
 public class GameSquare {
     private GameSquare[] squares;
-    public boolean isBomb;
+    private boolean isBomb;
     private boolean flagged;
     private boolean covered;
-    public boolean gameOver;
-    public boolean lastBomb;
+    private boolean gameOver;
+    private boolean lastBomb;
     private int bombs;
     
     public GameSquare(boolean isBomb) {
@@ -26,6 +26,14 @@ public class GameSquare {
         return isBomb;
     }
     
+    public boolean isLastBomb() {
+        return lastBomb;
+    }
+    
+    public boolean gameOver() {
+        return gameOver;
+    }
+    
     public boolean covered() {
         return covered;
     }
@@ -34,6 +42,21 @@ public class GameSquare {
         return flagged;
     }
     
+    public int getBombs() {
+        return bombs;
+    }
+    
+    public void setBomb(boolean b) {
+        isBomb = b;
+    }
+    
+    public void setLastBomb (boolean b) {
+        lastBomb = true;
+    }
+    
+    public void setGameOver (boolean b) {
+        gameOver = b;
+    }
     public void setSquares(GameSquare[] adjSqs) {
         squares = Arrays.copyOf(adjSqs, 8);
         for(GameSquare gs : squares) {
@@ -43,16 +66,13 @@ public class GameSquare {
         }
     }
     
+    
     public void toggleFlag() {
         flagged = !flagged;
     }
     
     public int uncover() {
         int i = 0;
-        if (isBomb) {
-            gameOver = true;
-            return 0;
-        }
         covered = false;
         i++;
         if (bombs == 0) {
@@ -65,27 +85,4 @@ public class GameSquare {
         return i;
     }
     
-    public void draw(Graphics g, int w, int h) {
-        g.setColor(Color.DARK_GRAY);
-        g.drawRect(0, 0, w, h);
-        if (lastBomb) {
-            g.setColor(Color.RED);
-            g.fillRect(1, 1, w - 1, h - 1);
-        }
-        
-        if(flagged) {
-            g.setColor(Color.BLUE);
-            g.fillRect(w/4, h/4, w/2, h/2);
-        }
-        if(isBomb && gameOver) {
-            g.setColor(Color.BLACK);
-            g.fillOval(w/4, h/4, w / 2, h / 2);
-        }
-        if(bombs != 0 && !covered) {
-            g.setColor(Color.BLACK);
-            //g.drawOval(3 * w / 8, 3*h/8, w/4, w/4);
-            g.setFont(new Font(g.getFont().getFontName(), g.getFont().getStyle(), g.getFont().getSize() + 15));
-            g.drawString(Integer.toString(bombs), w/ 3, 3 * h / 4);
-        }
-    }
 }

@@ -6,7 +6,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -19,16 +23,19 @@ public class GamePanel extends JPanel {
     private GameSquare[][] gameSquares;
     private SquarePanel[][] squarePanels;
     private final int INTERVAL = 100;
-    private final int BOARD_WIDTH = 10;
-    private final int BOARD_HEIGHT = 10;
+    private final int BOARD_WIDTH = 8;
+    private final int BOARD_HEIGHT = 8;
     private final int NUM_BOMBS = 10;
     private static int sec;
     private final int SAFE_SQUARES = BOARD_WIDTH * BOARD_HEIGHT - NUM_BOMBS;
     private int uncoveredCount;
     private int flagsLeft;
     private final Timer timer;
+    private boolean firstClick;
+    private long startTime;
     
     public GamePanel(JLabel flagCount, JLabel time) {
+        firstClick = true;
         flagsLeft = NUM_BOMBS;
         uncoveredCount = 0;
         setLayout(new GridLayout(BOARD_HEIGHT, BOARD_WIDTH, 0, 0));
@@ -39,42 +46,37 @@ public class GamePanel extends JPanel {
                 gameSquares[x][y] = new GameSquare(false);
             }
         } 
-//        gameSquares[4][0].isBomb = true;
-//        gameSquares[7][0].isBomb = true;
-//        gameSquares[0][2].isBomb = true;
-//        gameSquares[7][2].isBomb = true;
-//        gameSquares[9][2].isBomb = true;
-//        gameSquares[1][4].isBomb = true;
-//        gameSquares[9][4].isBomb = true;
-//        gameSquares[4][6].isBomb = true;
-//        gameSquares[7][6].isBomb = true;
-//        gameSquares[3][7].isBomb = true;
-        Random rand = new Random();
-        for (int i = 0; i < NUM_BOMBS; i++) {
-            int x = 0;
-            int y = 0;
-            do {
-                x = rand.nextInt(BOARD_WIDTH);
-                y = rand.nextInt(BOARD_HEIGHT);
-            } while (gameSquares[x][y].isBomb);
-            gameSquares[x][y].isBomb = true;
-        }
-        for(int x = 0; x < squarePanels.length; x++) {
-            for(int y = 0; y < squarePanels[0].length; y++) {
-                GameSquare[] adjSqs = getAdjSqs(x,y);
-                gameSquares[x][y].setSquares(adjSqs);
+        
+        DecimalFormat timeFormat = new DecimalFormat("000");
+        timer = new Timer(INTERVAL, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                repaint();
+                long timeNow = System.currentTimeMillis();
+                sec = (int) (timeNow - startTime) / 1000;
+                time.setText(timeFormat.format(sec));
+                flagCount.setText(timeFormat.format(flagsLeft));
             }
-        }
-
+        });
+        
         for(int y = 0; y < BOARD_HEIGHT; y++) {
-            for(int x = 0; x < BOARD_WIDTH; x++) {
-                GameSquare gs = gameSquares[x][y];
-                squarePanels[x][y] = new SquarePanel(gameSquares[x][y]);
-                squarePanels[x][y].addMouseListener(new MouseAdapter(){
+                for(int x = 0; x < BOARD_WIDTH; x++) {
+                    GameSquare gs = gameSquares[x][y];
+                    final int i = x;                
+                    final int j = y;
+                    squarePanels[x][y] = new SquarePanel(gameSquares[x][y]);
+                    squarePanels[x][y].addMouseListener(new MouseAdapter(){
                     public void mouseClicked(MouseEvent e) {
-                        if(SwingUtilities.isLeftMouseButton(e)){
+                      if(SwingUtilities.isLeftMouseButton(e)){
+                            if (firstClick) {
+                                setup(i, j);
+                                firstClick = false;
+                                mouseClicked(e);
+                                startTime = System.currentTimeMillis();
+                                timer.start();
+                                return;
+                            }
                             if (!gs.flagged() && gs.isBomb()) {
-                                gs.lastBomb = true;
+                                gs.setLastBomb(true);
                                 revealAllBombs();
                                 Game.gameOver();
                             }
@@ -97,27 +99,39 @@ public class GamePanel extends JPanel {
                 add(squarePanels[x][y], SwingConstants.CENTER);
             }
         }
-        
-        final long startTime = System.currentTimeMillis();
-        DecimalFormat timeFormat = new DecimalFormat("000");
-        timer = new Timer(INTERVAL, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                repaint();
-                long timeNow = System.currentTimeMillis();
-                sec = (int) (timeNow - startTime) / 1000;
-                time.setText(timeFormat.format(sec));
-                flagCount.setText(timeFormat.format(flagsLeft));
-            }
-        });
-        timer.start();
     }
     
+    private void setup(int u, int v) {
+        Set<GameSquare> safe = new HashSet<GameSquare>();
+        for (GameSquare gs : getAdjSqs(u, v)) {
+            safe.add(gs);
+        }
+        Random rand = new Random();
+        for (int i = 0; i < NUM_BOMBS; i++) {
+            int x = 0;
+            int y = 0;
+            do {
+                x = rand.nextInt(BOARD_WIDTH);
+                y = rand.nextInt(BOARD_HEIGHT);
+            } while (gameSquares[x][y].isBomb() || (x == u && y == v) || safe.contains(gameSquares[x][y]));
+            gameSquares[x][y].setBomb(true);
+        }
+        
+        for(int x = 0; x < squarePanels.length; x++) {
+            for(int y = 0; y < squarePanels[0].length; y++) {
+                GameSquare[] adjSqs = getAdjSqs(x,y);
+                gameSquares[x][y].setSquares(adjSqs);
+            }
+        }
+
+    }
     
     private void checkWin() {
         if (uncoveredCount == SAFE_SQUARES) {
             Game.win(sec);
         }
     }
+    
     private GameSquare[] getAdjSqs(int x, int y) {
         GameSquare[] ret = new GameSquare[8];
         int ii = 0;
@@ -136,7 +150,7 @@ public class GamePanel extends JPanel {
         for (GameSquare[] g : gameSquares) {
             for (GameSquare gs : g){
                 if (gs.isBomb()) {
-                    gs.gameOver = true;
+                    gs.setGameOver(true);
                 }
             }
         }
@@ -148,22 +162,11 @@ public class GamePanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-//        int width = squarePanels[0][0].WIDTH;
-//        int height = squarePanels[0][0].HEIGHT;
-//        super.paintComponent(g);
-//        for(int x = 0; x < BOARD_WIDTH; x++) {
-//            for(int y = 0; y < BOARD_HEIGHT; y++) {
-//                squarePanels[x][y].paintComponent(g);
-//                g.translate(0, height);
-//            }
-//            g.translate(0, -BOARD_WIDTH * width);
-//            g.translate(width, 0);
-//        }
     }
     
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(BOARD_WIDTH * squarePanels[0][0].WIDTH, BOARD_HEIGHT * squarePanels[0][0].HEIGHT);
+        return new Dimension(BOARD_WIDTH * squarePanels[0][0].getWidth(), BOARD_HEIGHT * squarePanels[0][0].getHeight());
     }
 }
 

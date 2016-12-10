@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -10,14 +11,11 @@ import javax.swing.SwingUtilities;
 
 public class SquarePanel extends JPanel {
     private GameSquare gs;
-    public final int WIDTH = 50;
-    public final int HEIGHT = 50;
-    private boolean mouseClick;
+    private final int WIDTH = 50;
+    private final int HEIGHT = 50;
     
     public SquarePanel(GameSquare gameSq) {
         gs = gameSq;
-        mouseClick = false;
-        
     }
     
     
@@ -29,7 +27,26 @@ public class SquarePanel extends JPanel {
             g.setColor(Color.GRAY);
             g.fillRect(1, 1, WIDTH - 1, HEIGHT - 1);
         }
-        gs.draw(g, WIDTH, HEIGHT);
+        g.setColor(Color.DARK_GRAY);
+        g.drawRect(0, 0, WIDTH, HEIGHT);
+        if (gs.isLastBomb()) {
+            g.setColor(Color.RED);
+            g.fillRect(1, 1, WIDTH - 1, HEIGHT - 1);
+        }
+        
+        if(gs.flagged()) {
+            g.setColor(Color.BLUE);
+            g.fillRect(WIDTH / 4, HEIGHT / 4, WIDTH / 2, HEIGHT / 2);
+        }
+        if(gs.isBomb() && gs.gameOver()) {
+            g.setColor(Color.BLACK);
+            g.fillOval(WIDTH / 4, HEIGHT / 4, WIDTH / 2, HEIGHT / 2);
+        }
+        if(gs.getBombs() != 0 && !gs.covered()) {
+            g.setColor(Color.BLACK);
+            g.setFont(new Font(g.getFont().getFontName(), g.getFont().getStyle(), g.getFont().getSize() + 15));
+            g.drawString(Integer.toString(gs.getBombs()), WIDTH / 3, 3 * HEIGHT / 4);
+        }
     }
     
     @Override
