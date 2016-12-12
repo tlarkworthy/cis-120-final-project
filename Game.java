@@ -23,6 +23,10 @@ import javax.swing.*;
 
 public class Game implements Runnable
 {
+    private final int BOARD_WIDTH = 8;
+    private final int BOARD_HEIGHT = 8;
+    private final int NUM_BOMBS = 10;
+    
     private static GamePanel gp;
     private static JFrame frame;
     public void run() {
@@ -103,7 +107,7 @@ public class Game implements Runnable
         controlPanel.add(time);
         
         frame.setResizable(false);
-        gp = new GamePanel(flagCount, time);
+        gp = new GamePanel(flagCount, time, BOARD_WIDTH, BOARD_HEIGHT, NUM_BOMBS);
         frame.add(gp, BorderLayout.CENTER);
         
         frame.add(controlPanel, BorderLayout.NORTH);
