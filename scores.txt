@@ -20,3 +20,4 @@ pranav: 224
 yay: 73
 kate: 0
 k8 the gr8: 103
+jonathan: 94

@@ -1,11 +1,9 @@
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
-
-import static org.junit.Assert.*;
-
-import javax.swing.JLabel;
-
-import org.junit.After;
+import org.junit.Test;
 
 
 
@@ -13,13 +11,14 @@ public class GameSquareTests {
     GamePanel gp;
     
     @Before public void setUp() {
-        gp = new GamePanel(new JLabel(), new JLabel(), 8, 8, 10);
+        gp = new GamePanel(8, 8, 10);
     }
     
     @Test public void noBombsBeforeSetup() {
-        int uncovered = gp.uncover(6, 4);
+        gp.uncover(6, 4);
+        int uncovered = gp.getUncoveredCount();
         assertEquals("uncovered", uncovered, 64);
-        //assertTrue("Won", gp.checkWin());
+        assertTrue("Won", gp.checkWin());
     }
     
     @Test public void bombsPlaced() {
@@ -47,12 +46,28 @@ public class GameSquareTests {
     }
     
     @Test public void testNumBombs() {
-        GamePanel smallGp = new GamePanel(new JLabel(), new JLabel(), 4, 4, 1);
+        GamePanel smallGp = new GamePanel(4, 4, 1);
         smallGp.setBomb(0, 0);
         GameSquare[][] gs = smallGp.getCopyOfBoard();
         
         assertEquals("number of adjacent bombs is 1 for (0,1)", gs[0][1].getBombs(), 1);
     }
+    
+    @Test public void cantExceedFlagLimit() {
+        for (int i = 0; i < 10; i++) {
+            if (i % 2 == 0) {
+                gp.rightClick(i / 2, 0);
+            } else {
+                gp.rightClick(0, (i / 2) + 1);
+            }
+        }
+            gp.rightClick(6, 7);
+            GameSquare[][] gs = gp.getCopyOfBoard();
+            assertFalse("can't place more than the flag limit", gs[6][7].flagged());
+
+    }
+    
+    
     
     
 }

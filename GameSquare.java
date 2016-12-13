@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class GameSquare extends JPanel {
     private GameSquare[] squares;
     private boolean isBomb;
@@ -83,20 +84,6 @@ public class GameSquare extends JPanel {
     public void reveal() {
         covered = false;
     }
-    
-//    public int uncover() {
-//        int i = 0;
-//        covered = false;
-//        i++;
-//        if (bombs == 0) {
-//            for(GameSquare gs : squares) {
-//                if (gs != null && gs.covered() && !gs.flagged()) {
-//                    i += gs.uncover();
-//                }
-//            }
-//        }
-//        return i;
-//    }
     
     @Override
     public void paintComponent(Graphics g) {
