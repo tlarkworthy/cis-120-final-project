@@ -9,7 +9,7 @@ import org.junit.Test;
 
 
 
-public class GameSquareTests {
+public class GamePanelTests {
     GamePanel gp;
     
     @Before public void setUp() {
@@ -89,7 +89,14 @@ public class GameSquareTests {
         assertTrue("correct adjacent squares", list.contains(gs[1][0]));
     }
     
-    
+    @Test public void uncoverCornerTest() {
+        gp.setBomb(6, 6);
+        gp.uncover(7, 7);
+        GameSquare[][] gs = gp.getCopyOfBoard();
+        assertFalse("only one square uncovered", gs[7][7].covered());
+        assertTrue("only one square uncovered", gs[7][6].covered());
+        assertTrue("only one square uncovered", gs[6][7].covered());
+    }
     
     
     

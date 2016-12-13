@@ -62,7 +62,7 @@ PennKey: tlarkwor
         GameSquare -- GameSquare stores the state of an individual tile and provides methods for drawing
                       itself and accessing its stateful values.
         
-        GameSquareTests -- This file includes JUnit tests of the methods in GamePanel that modify the
+        GamePanelTests -- This file includes JUnit tests of the methods in GamePanel that modify the
                            game's state.
 
 - Were there any significant stumbling blocks while you were implementing your
