@@ -106,7 +106,7 @@ public class GameSquare extends JPanel {
             g.setColor(Color.BLACK);
             g.fillOval(WIDTH / 4, HEIGHT / 4, WIDTH / 2, HEIGHT / 2);
         }
-        if (bombs != 0 && covered) {
+        if (bombs != 0 && !covered) {
             g.setColor(Color.BLACK);
             g.setFont(new Font(g.getFont().getFontName(), g.getFont().getStyle(), g.getFont().getSize() + 15));
             g.drawString(Integer.toString(bombs), WIDTH / 3, 3 * HEIGHT / 4);

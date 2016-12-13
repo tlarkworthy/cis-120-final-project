@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,7 +68,6 @@ public class Game implements Runnable
                 instrucFrame.add(new JLabel("If you solve the board "
                         + "with a low enough time, you can make the top 10 high score list!", SwingConstants.CENTER));
                 instrucFrame.add(new JLabel("Good luck!", SwingConstants.CENTER));
-                //instrucFrame.pack();
                 instrucFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 instrucFrame.setVisible(true);
             }
@@ -76,46 +76,30 @@ public class Game implements Runnable
         highScores.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 final JFrame scoreFrame = new JFrame("High Scores");
-                //scoreFrame.setLayout(new FlowLayout());
+                scoreFrame.setLayout(new GridLayout(11, 1));
                 scoreFrame.setLocation(400, 400);
                 scoreFrame.setSize(600, 500);
-                List<String> scoreLines = new ArrayList<String>();
+                JLabel title = new JLabel("High Scores");
+                title.setFont(title.getFont().deriveFont((float) 25));
+                scoreFrame.add(title);
                 try {
                     BufferedReader in = new BufferedReader(new FileReader(new File("scores.txt")));
-                    String next = in.readLine();
-
-                    Map<String, Integer> scores = new TreeMap<String, Integer>();
-                    while(next != null) {
-                        String name = parseName(next);
-                        int s = parseScore(next);
-                        scores.put(name, s);
-                        next = in.readLine();
+                    for (int i = 0; i < 10; i++) {
+                        JLabel l = new JLabel((i + 1) + ".  " + in.readLine(), SwingConstants.LEFT);
+                        l.setFont(l.getFont().deriveFont((float) 20));
+                        scoreFrame.add(l);
                     }
-                    List<Integer> sscores = new ArrayList<Integer>(scores.values());
-                    Collections.sort(sscores);
-                    for (int i = 0; i < 10; i ++) {
-                        for (String s : scores.keySet()) {
-                            if (scores.get(s) == sscores.get(i)) {
-                                scoreLines.add(s + ": " + sscores.get(i));
-                            }
-                        }
-                    }
+                   
                     in.close();
                 } catch (FileNotFoundException e1) {
                     System.exit(1);
                 } catch (IOException e1) {
                     System.exit(1);
+                } catch (NullPointerException e1) {
+                    System.out.print("scores.txt format corrupted!");
+                    System.exit(1);
                 }
-                String label = "<html><p style=\"align:center\">";
-                for (String s : scoreLines) {
-                    label += s + "<br />";
-                }
-                label += "</p></html>";
-                JLabel lose = new JLabel(label, SwingConstants.CENTER);
-                lose.setFont(new Font(lose.getFont().getName(), lose.getFont().getStyle(), lose.getFont().getSize() * 2));
-                scoreFrame.add(lose);
-               
-                //scoreFrame.add(new JLabel("i love abhi"));
+                
                 scoreFrame.pack();
                 scoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 scoreFrame.setVisible(true);
@@ -147,7 +131,6 @@ public class Game implements Runnable
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
         
-        //win(0);
     }
     
     public static void gameOver() {
@@ -210,46 +193,82 @@ public class Game implements Runnable
         endFrame.setLayout(new BorderLayout());
         endFrame.setLocation(500, 500);
         
-        
+        List<String> scoreLines = new ArrayList<String>();
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(new File("scores.txt")));
+
+            ArrayList<Integer> scores = new ArrayList<Integer>(11);
+            ArrayList<String> users = new ArrayList<String>(11);
+            for (int i = 0; i < 10; i++){            
+                String next = in.readLine();
+                String n = parseName(next);
+                int s = parseScore(next);
+                scores.add(i, s);
+                users.add(i, n);
+            }
+            if (sec <= scores.get(9)) {
+                JLabel newHighScore = new JLabel("New High Score!", SwingConstants.CENTER);
+                newHighScore.setFont(new Font(newHighScore.getFont().getFontName(), newHighScore.getFont().getStyle(), 
+                        newHighScore.getFont().getSize() * 2));
+                JTextField username = new JTextField("User", 1);
+                JButton enterName = new JButton("Enter");
+                JPanel namePanel = new JPanel();
+                namePanel.setPreferredSize(new Dimension(10, 25));
+                namePanel.setLayout(new GridLayout(1, 3));
+                namePanel.add(username);
+                namePanel.add(enterName);
+                enterName.setSize(50, 200);
+                endFrame.add(newHighScore, BorderLayout.CENTER);
+                endFrame.add(namePanel, BorderLayout.SOUTH);
+                enterName.addActionListener(new ActionListener(){
+                    public void actionPerformed(ActionEvent e) {
+                        String name = username.getText();
+                        FileWriter out;
+                        try {
+                            //sanitize the name input
+                            char[] chars = name.toCharArray();
+                            for (int i = 0; i < chars.length; i++) {
+                                if (chars[i] == 58) {
+                                    chars[i] = 0;
+                                }
+                            }
+                            name = String.copyValueOf(chars);
+                            out = new FileWriter(new File("scores.txt"));
+                            boolean written = false;
+                            for (int i = 0; i < 10; i++) {
+                                if (sec <= scores.get(i) && !written) {
+                                    scores.add(i, sec);
+                                    users.add(i, name);
+                                    written = true;
+                                }
+                                out.write(users.get(i) + ": " + scores.get(i) + "\n");
+                            }
+
+                            out.flush();
+                            out.close();
+                        } catch (IOException e1) {
+                            System.out.println("error");
+                            System.exit(0);
+                        }
+                        System.exit(0);
+                    }
+                });
+            }
+                
+            in.close();
+        } catch (FileNotFoundException e1) {
+            System.out.println("No scores.txt file found!");
+            System.exit(1);
+        } catch (IOException e1) {
+            System.out.println("Input error");
+            System.exit(1);
+        }
         
         JLabel win = new JLabel("You Win! Time: " + sec, SwingConstants.CENTER);
-        JTextField username = new JTextField("User", 1);
-        JButton enterName = new JButton("Enter");
-        enterName.setSize(50, 200);
-        enterName.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e) {
-                String name = username.getText();
-                FileWriter out;
-                try {
-                    char[] chars = name.toCharArray();
-                    for (int i = 0; i < chars.length; i++) {
-                        if (chars[i] == 58) {
-                            chars[i] = 0;
-                        }
-                    }
-                    name = String.copyValueOf(chars);
-                    out = new FileWriter(new File("scores.txt"), true);
-                    out.append(name + ": " + sec + "\n");
-                    out.flush();
-                    out.close();
-                } catch (IOException e1) {
-                    System.out.println("error");
-                    System.exit(0);
-                }
-                //System.out.println(name + " " + gameTime);
-                System.exit(0);
-            }
-        });
         
-        JPanel namePanel = new JPanel();
-        namePanel.setPreferredSize(new Dimension(10, 25));
-        namePanel.setLayout(new GridLayout(1, 3));
-        namePanel.add(username);
-        namePanel.add(enterName);
         
         win.setFont(new Font(win.getFont().getName(), win.getFont().getStyle(), win.getFont().getSize() * 3));
         endFrame.add(win, BorderLayout.NORTH);
-        endFrame.add(namePanel, BorderLayout.SOUTH);
         endFrame.setSize(500, 200);
         endFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         endFrame.setVisible(true);

@@ -1,23 +1,10 @@
-User1: 999
-User2: 999
-User3: 999
-User4: 999
-User5: 999
-User6: 999
-User7: 999
-User8: 999
-User9: 999
-User10: 999
-User11: 999
-tyler: 999
-tyler2: 280
-tyler4: 128
-tyler: 147
-abhi : 1: 38
+kate: 0
 User: 0
 User: 22
-pranav: 224
+abhi: 38
+sofiya: 54
 yay: 73
-kate: 0
-k8 the gr8: 103
 jonathan: 94
+k8 the gr8: 103
+tyler4: 128
+tyler: 147
