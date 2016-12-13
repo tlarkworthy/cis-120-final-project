@@ -87,32 +87,29 @@ public class GameSquare extends JPanel {
     
     @Override
     public void paintComponent(Graphics g) {
-        int WIDTH = 50;
-        int HEIGHT = 50;
-        GameSquare gs = this;
-        if(gs.covered()) {
+        if (covered) {
             g.setColor(Color.GRAY);
             g.fillRect(1, 1, WIDTH - 1, HEIGHT - 1);
         }
         g.setColor(Color.DARK_GRAY);
         g.drawRect(0, 0, WIDTH, HEIGHT);
-        if (gs.isLastBomb()) {
+        if (lastBomb) {
             g.setColor(Color.RED);
             g.fillRect(1, 1, WIDTH - 1, HEIGHT - 1);
         }
         
-        if(gs.flagged()) {
+        if (flagged) {
             g.setColor(Color.BLUE);
             g.fillRect(WIDTH / 4, HEIGHT / 4, WIDTH / 2, HEIGHT / 2);
         }
-        if(gs.isBomb() && gs.gameOver()) {
+        if (isBomb && gameOver) {
             g.setColor(Color.BLACK);
             g.fillOval(WIDTH / 4, HEIGHT / 4, WIDTH / 2, HEIGHT / 2);
         }
-        if(gs.getBombs() != 0 && !gs.covered()) {
+        if (bombs != 0 && covered) {
             g.setColor(Color.BLACK);
             g.setFont(new Font(g.getFont().getFontName(), g.getFont().getStyle(), g.getFont().getSize() + 15));
-            g.drawString(Integer.toString(gs.getBombs()), WIDTH / 3, 3 * HEIGHT / 4);
+            g.drawString(Integer.toString(bombs), WIDTH / 3, 3 * HEIGHT / 4);
         }
     }
     

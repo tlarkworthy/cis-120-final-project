@@ -2,6 +2,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,6 +68,29 @@ public class GameSquareTests {
             assertFalse("can't place more than the flag limit", gs[6][7].flagged());
 
     }
+    
+    @Test public void adjacentSquaresTest() {
+        GameSquare[][] gs = gp.getCopyOfBoard();
+        GameSquare[] squares = gp.getAdjSqs(0, 0);
+        assertEquals("length is still 8", squares.length, 8);
+        boolean nulls = squares[0] != null &&
+                        squares[1] != null &&
+                        squares[2] != null &&
+                        squares[3] == null &&
+                        squares[4] == null &&
+                        squares[5] == null &&
+                        squares[6] == null &&
+                        squares[7] == null;
+        assertTrue("only 3 squares adjacent", nulls);
+        ArrayList<GameSquare> list = new ArrayList<GameSquare>(3);
+        list.add(squares[0]);
+        list.add(squares[1]);
+        list.add(squares[2]);
+        assertTrue("correct adjacent squares", list.contains(gs[1][0]));
+    }
+    
+    
+    
     
     
     
