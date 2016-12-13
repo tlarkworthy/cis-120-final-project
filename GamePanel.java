@@ -16,7 +16,7 @@ public class GamePanel extends JPanel {
     private int width;
     private int height;
     private int numBombs;
-    private final int SAFE_SQUARES;
+    private int safeSquares;
     private int uncoveredCount;
     private int flagsLeft;
     private boolean firstClick;
@@ -28,7 +28,7 @@ public class GamePanel extends JPanel {
         firstClick = true;
         flagsLeft = nb;
         uncoveredCount = 0;
-        SAFE_SQUARES = width * height - numBombs;
+        safeSquares = width * height;
         gameSquares = new GameSquare[width][height];
         
         Game.updateFlagCount(flagsLeft);
@@ -89,11 +89,12 @@ public class GamePanel extends JPanel {
                 gameSquares[x][y].setBombs(i);
             }
         }
+        safeSquares -= numBombs;
     }
     
     
     boolean checkWin() {
-        return uncoveredCount == SAFE_SQUARES;
+        return uncoveredCount == safeSquares;
     }
     
    void leftClick(int x, int y) {

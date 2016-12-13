@@ -164,6 +164,9 @@ public class Game implements Runnable
     }
     
     public static void updateFlagCount(int flags) {
+        if (flagCount == null) {
+            return;
+        }
         DecimalFormat flagFormat = new DecimalFormat("000");
         flagCount.setText(flagFormat.format(flags));
     }
