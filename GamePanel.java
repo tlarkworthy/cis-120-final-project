@@ -1,124 +1,183 @@
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.text.DecimalFormat;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 
 @SuppressWarnings("serial")
 public class GamePanel extends JPanel {
     private GameSquare[][] gameSquares;
-    private SquarePanel[][] squarePanels;
-    private final int INTERVAL = 100;
-    private final int BOARD_WIDTH = 10;
-    private final int BOARD_HEIGHT = 10;
-    private final int NUM_BOMBS = 10;
-    private static int sec;
-    private final int SAFE_SQUARES = BOARD_WIDTH * BOARD_HEIGHT - NUM_BOMBS;
+    private int width;
+    private int height;
+    private int numBombs;
+    private int safeSquares;
     private int uncoveredCount;
     private int flagsLeft;
-    private final Timer timer;
+    private boolean firstClick;
     
-    public GamePanel(JLabel flagCount, JLabel time) {
-        flagsLeft = NUM_BOMBS;
+    public GamePanel(int w, int h, int nb) {
+        width = w;
+        height = h;
+        numBombs = nb;
+        firstClick = true;
+        flagsLeft = nb;
         uncoveredCount = 0;
-        setLayout(new GridLayout(BOARD_HEIGHT, BOARD_WIDTH, 0, 0));
-        squarePanels = new SquarePanel[BOARD_WIDTH][BOARD_HEIGHT];
-        gameSquares = new GameSquare[BOARD_WIDTH][BOARD_HEIGHT];
-        for(int x = 0; x < squarePanels.length; x++) {
-            for(int y = 0; y < squarePanels[0].length; y++) {
-                gameSquares[x][y] = new GameSquare(false);
-            }
-        } 
-//        gameSquares[4][0].isBomb = true;
-//        gameSquares[7][0].isBomb = true;
-//        gameSquares[0][2].isBomb = true;
-//        gameSquares[7][2].isBomb = true;
-//        gameSquares[9][2].isBomb = true;
-//        gameSquares[1][4].isBomb = true;
-//        gameSquares[9][4].isBomb = true;
-//        gameSquares[4][6].isBomb = true;
-//        gameSquares[7][6].isBomb = true;
-//        gameSquares[3][7].isBomb = true;
-        Random rand = new Random();
-        for (int i = 0; i < NUM_BOMBS; i++) {
-            int x = rand.nextInt(10);
-            int y = rand.nextInt(10);
-            gameSquares[x][y].isBomb = true;
-        }
-        for(int x = 0; x < squarePanels.length; x++) {
-            for(int y = 0; y < squarePanels[0].length; y++) {
-                GameSquare[] adjSqs = getAdjSqs(x,y);
-                gameSquares[x][y].setSquares(adjSqs);
+        safeSquares = width * height;
+        gameSquares = new GameSquare[width][height];
+        
+        Game.updateFlagCount(flagsLeft);
+        
+        setLayout(new GridLayout(height, width, 0, 0));
+        
+        for(int y = 0; y < height; y++) {
+                for(int x = 0; x < width; x++) {
+                    gameSquares[x][y] = new GameSquare(false);
+                    add(gameSquares[x][y], SwingConstants.CENTER);
+                    final int i = x;                
+                    final int j = y;
+                    gameSquares[x][y].addMouseListener(new MouseAdapter(){
+                        public void mouseClicked(MouseEvent e) {
+                          if(SwingUtilities.isLeftMouseButton(e)) {
+                                if (firstClick) {
+                                    placeBombs(i, j);
+                                    Game.start();
+                                    firstClick = false;
+                                    mouseClicked(e);
+                                    return;
+                                }
+                                leftClick(i, j);
+                            } else if(SwingUtilities.isRightMouseButton(e)) {
+                                rightClick(i, j);
+                            }
+                            repaint();
+                        }
+                });
             }
         }
 
-        for(int y = 0; y < BOARD_HEIGHT; y++) {
-            for(int x = 0; x < BOARD_WIDTH; x++) {
-                GameSquare gs = gameSquares[x][y];
-                squarePanels[x][y] = new SquarePanel(gameSquares[x][y]);
-                squarePanels[x][y].addMouseListener(new MouseAdapter(){
-                    public void mouseClicked(MouseEvent e) {
-                        if(SwingUtilities.isLeftMouseButton(e)){
-                            if (!gs.flagged() && gs.isBomb()) {
-                                gs.lastBomb = true;
-                                revealAllBombs();
-                                Game.gameOver();
-                            }
-                            if(gs.covered() && !gs.flagged()) {
-                                uncoveredCount += gs.uncover();
-                                checkWin();
-                            }
-                        } else if(SwingUtilities.isRightMouseButton(e)) {
-                            if (gs.covered() && gs.flagged()) {
-                                flagsLeft++;
-                                gs.toggleFlag();
-                            } else if (gs.covered() && !gs.flagged() && flagsLeft > 0) {
-                                flagsLeft--;
-                                gs.toggleFlag();
-                            }
-                        }
-                        repaint();
+    }
+    
+    void placeBombs(int u, int v) {
+        Set<GameSquare> safe = new HashSet<GameSquare>();
+        for (GameSquare gs : getAdjSqs(u, v)) {
+            safe.add(gs);
+        }
+        Random rand = new Random();
+        for (int i = 0; i < numBombs; i++) {
+            int x = 0;
+            int y = 0;
+            do {
+                x = rand.nextInt(width);
+                y = rand.nextInt(height);
+            } while (gameSquares[x][y].isBomb() || (x == u && y == v) || safe.contains(gameSquares[x][y]));
+            gameSquares[x][y].setBomb(true);
+        }
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int i = 0;
+                for (GameSquare gs : getAdjSqs(x, y)) {
+                    if (gs != null && gs.isBomb()) {
+                        i++;
                     }
-                });
-                add(squarePanels[x][y]);
+                }
+                gameSquares[x][y].setBombs(i);
             }
         }
-        
-        final long startTime = System.currentTimeMillis();
-        DecimalFormat timeFormat = new DecimalFormat("000");
-        timer = new Timer(INTERVAL, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                repaint();
-                long timeNow = System.currentTimeMillis();
-                sec = (int) (timeNow - startTime) / 1000;
-                time.setText(timeFormat.format(sec));
-                flagCount.setText(timeFormat.format(flagsLeft));
-            }
-        });
-        timer.start();
+        safeSquares -= numBombs;
     }
     
     
-    private void checkWin() {
-        if (uncoveredCount == SAFE_SQUARES) {
-            Game.win(sec);
+    boolean checkWin() {
+        return uncoveredCount == safeSquares;
+    }
+    
+   void leftClick(int x, int y) {
+        GameSquare gs = gameSquares[x][y];
+        if (!gs.flagged() && gs.isBomb()) {
+            gs.setLastBomb(true);
+            revealAllBombs();
+            Game.gameOver();
+        }
+        if(gs.covered() && !gs.flagged()) {
+            uncover(x, y);
+            if (checkWin()) {
+                Game.win();
+            }
         }
     }
-    private GameSquare[] getAdjSqs(int x, int y) {
+    
+    void rightClick(int x, int y) {
+        GameSquare gs = gameSquares[x][y];
+        if(!gs.covered()) {
+            return;
+        }
+        if (gs.flagged()) {
+            flagsLeft++;
+            gs.toggleFlag();
+        } else if (flagsLeft > 0) {
+            flagsLeft--;
+            gs.toggleFlag();
+        }
+        Game.updateFlagCount(flagsLeft);
+    }
+    
+    void setBomb(int i, int j) {
+        gameSquares[i][j].setBomb(true);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int ii = 0;
+                for (GameSquare gs : getAdjSqs(x, y)) {
+                    if (gs != null && gs.isBomb()) {
+                        ii++;
+                    }
+                }
+                gameSquares[x][y].setBombs(ii);
+            }
+        }
+    }
+    
+    void uncover(int x, int y) {
+        GameSquare g = gameSquares[x][y];
+        if (g.isBomb() || g.flagged()) {
+            return;
+        }
+        if (gameSquares[x][y].getBombs() != 0) {
+            gameSquares[x][y].reveal();
+            uncoveredCount++;
+            return;
+        } else {
+            gameSquares[x][y].reveal();
+            uncoveredCount++;
+        }
+        for(int i = x - 1; i <= x + 1; i++) {
+            for(int j = y - 1; j <= y + 1; j++) {
+                if( i >= 0 && j >= 0 && i < width && j < height && (i != x || j != y)) {
+                    GameSquare gs = gameSquares[i][j];
+                    if (gs != null && gs.covered() && !gs.flagged()) {
+                        gs.reveal();
+                        uncover(i, j);
+                    }
+                }
+            }
+        }
+    }
+    
+    int getUncoveredCount() {
+        return uncoveredCount;
+    }
+    
+    GameSquare[] getAdjSqs(int x, int y) {
         GameSquare[] ret = new GameSquare[8];
         int ii = 0;
         for(int i = x - 1; i <= x + 1; i++) {
             for(int j = y - 1; j <= y + 1; j++) {
-                if( i >= 0 && j >= 0 && i < BOARD_WIDTH && j < BOARD_HEIGHT && (i != x || j != y)) {
+                if( i >= 0 && j >= 0 && i < width && j < height && (i != x || j != y)) {
                     ret[ii] = gameSquares[i][j];
                     ii++;
                 }
@@ -127,38 +186,31 @@ public class GamePanel extends JPanel {
         return ret;
     }
     
-    private void revealAllBombs() {
+    void revealAllBombs() {
         for (GameSquare[] g : gameSquares) {
             for (GameSquare gs : g){
                 if (gs.isBomb()) {
-                    gs.gameOver = true;
+                    gs.setGameOver(true);
                 }
             }
         }
     }
-    public void stopTimer() {
-        timer.stop();
+    
+    
+    GameSquare[][] getCopyOfBoard() {
+        GameSquare[][] ret = new GameSquare[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y ++) {
+                ret[x][y] = gameSquares[x][y];
+            }
+        }
+        return ret;
     }
     
-    @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-//        int width = squarePanels[0][0].WIDTH;
-//        int height = squarePanels[0][0].HEIGHT;
-//        super.paintComponent(g);
-//        for(int x = 0; x < BOARD_WIDTH; x++) {
-//            for(int y = 0; y < BOARD_HEIGHT; y++) {
-//                squarePanels[x][y].paintComponent(g);
-//                g.translate(0, height);
-//            }
-//            g.translate(0, -BOARD_WIDTH * width);
-//            g.translate(width, 0);
-//        }
-    }
     
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(BOARD_WIDTH * squarePanels[0][0].WIDTH, BOARD_HEIGHT * squarePanels[0][0].HEIGHT);
+        return new Dimension(width * gameSquares[0][0].getWidth(), height * gameSquares[0][0].getHeight());
     }
 }
 
