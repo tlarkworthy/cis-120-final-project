@@ -35,7 +35,7 @@ public class Game implements Runnable
     private static GamePanel gp;
     private static JFrame frame;
     private static JLabel flagCount;
-    
+    private static int five = 5;
     public void run() {
         frame = new JFrame("Minesweeper");
         frame.setLocation(300, 300);
